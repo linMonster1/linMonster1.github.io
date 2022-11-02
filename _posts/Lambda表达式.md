@@ -1,0 +1,145 @@
+
+
+# Lambda表达式
+
+在Kotlin编程中，lambda表达式的应用非常常见，这篇文章用来介绍一下怎样用lambda表达式定义函数，以及用lambda表达式进行函数传参
+
+[参考文档]: https://developer.android.com
+
+## 用lambda表达式定义函数
+
+#### 先来看一个最简单的例子：
+
+```kotlin
+val trick={
+    println("No treats!")
+}
+```
+
+#### 关键点：
+
+1.lambda表达式的结果是一个值，因此可以直接将其存储在变量中（即上图中的trick中）
+
+2."="后面即为lambda表达式，大括号中的内容为函数正文
+
+#### 怎样调用
+
+```kotlin
+fun main(){
+    val trickFunction=trick//kotlin的推导机制可以判断出trick为函数类型
+    trick()
+    trickFunction()
+}
+```
+
+#### 加上参数和返回值
+
+刚才的trick函数非常简单，它的数据类型为（）->Unit，（）为空，代表它不接受任何参数，返回值类型为Unit，代表它不返回任何内容，所以它较为完整的写法是这样的
+
+```kotlin
+val treat:()->Unit={
+    println("Have a treat!")
+}
+```
+
+那么现在来看一个复杂的函数
+
+```kotlin
+val trick={
+    println("No treats!")
+}
+
+fun trickOrTreat(isTrick:Boolean):()->Unit{
+    if(isTrick){
+        return trick
+    }else{
+        return treat
+    }
+}
+```
+
+首先，我们又用lambda表达式定义了一个简单的函数trick，在trickOrTreat()函数的正文中，设置一个if语句，使其在 `isTrick` 为 `true` 时返回 `trick()` 函数，并在 `isTrick` 为 false 时返回 `treat()` 函数。
+
+代码逻辑理好了，现在来测试一下：
+
+```kotlin
+fun main(){
+    val treatFunction=trickOrTreat(false)
+    val trickFunction=trickOrTreat(true)
+    treatFunction()
+    trcikFunction()
+}
+```
+
+输出结果如下：
+
+```kotlin
+Have a treat!
+No treats!
+```
+
+在刚才的`trickOrtreat`函数中，我们将函数作为返回值，那么该怎样将函数作为参数传递呢？
+
+举个栗子：
+
+```kotlin
+fun trickOrTreat(isTrick:Boolean,extraTreat:(Int)->String):()->Unit{
+    if(isTrick){
+        return trick
+    }else{
+        println(extraTreat(5))
+        return treat
+    }
+}
+```
+
+在这个函数中，添加了类型为`(Int)->String`的extraTreat函数参数，这代表`trickOrTreat`函数接受一个函数作为参数，其参数类型为`Int`返回值类型为`String`
+
+那么现在我们来编写两个这样的函数来进行测试
+
+```kotlin
+fun main(){
+    val coins:(Int)->String={
+        quantity->"$quantity auarters"
+    }//quantity为Int参数(可省略),lambda表达式不支持return语句，函数中最后一个表达式的结果将成为返回值，详情下回分解
+    val cupcake:(Int)->String={
+        quantity->"Have a cupcake!"
+    }
+    val treatFunction = trickOrTreat(false，coins)
+    val trickFunction = trickOrTreat(true,cupcake)
+    treatFunction()
+    trickFunction()
+}
+```
+
+在`main`函数中，我们定义了两个以Int类型为参数，返回值为String的函数，并将其作为参数传入到`trickOrTreat`函数中。当 `isTrick` 为 `false` 时，传入 `coins()` 函数。对于第二次调用，当 `isTrick` 为 `true` 时，传入 `cupcake()` 函数。
+
+好了，现在我们已经掌握了如何将函数作为参数。但是如果我们不想传入函数呢？答案是把函数类型声明为可为`null`,方法很简单，用圆括号括住函数类型，并在后面接`?`符号
+
+修改`trickOrTreat`函数：
+
+```kotlin
+fun trickOrTreat(isTrick: Boolean, extraTreat: ((Int) -> String)?): () -> Unit {
+    if (isTrick) {
+        return trick
+    } else {
+        if (extraTreat != null) {
+            println(extraTreat(5))
+        }
+        return treat
+    }
+}
+```
+
+好了，现在`extraTreat`可以为空了，并且只有它不为空的情况下才会调用`println(extraTreat(5))`
+
+### 总结：
+
+- Kotlin 中的函数是一级结构，可以视为数据类型。
+- lambda 表达式提供了一种用于编写函数的简写语法。
+- 您可以将函数类型传入其他函数。
+- 对于一个函数类型，您可以从另一个函数返回它。
+- lambda 表达式会返回最后一个表达式的值。
+
+
+
